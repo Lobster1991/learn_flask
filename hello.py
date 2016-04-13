@@ -10,6 +10,8 @@ from flask.ext.sqlalchemy import SQLAlchemy
 import os
 from flask.ext.script import Manager, Shell
 from flask.ext.migrate import Migrate, MigrateCommand
+from flask.ext.mail import Message, Mail
+from threading import Thread
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -22,15 +24,25 @@ app.config['SQLACHEMY_COMMIT_ON_TEARDOWN'] = True
 #  UserWarning: SQLALCHEMY_TRACK_MODIFICATIONS adds significant
 #  overhead and will be disabled by default in the future.  Set it
 # to True to suppress this warning.
-# warnings.warn('SQLALCHEMY_TRACK_MODIFICATIONS adds significant
-# overhead and will be disabled by default in the future.  Set it
-# to True to suppress this warning.')
+
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+
+app.config['MAIL_SERVER'] = 'smtp.163.com'
+app.config['MAIL_PORT'] = 25
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'test@163.com'
+app.config['MAIL_PASSWORD'] = 'test'
+app.config['FLASKY_MAIL_SUBJECT_FREFIX'] = '[Flasky]'
+app.config['FLASKY_ADMIN'] = 'test@163.com'
+app.config['FLASKY_MAIL_SENDER'] = 'test@163.com'
+
 db = SQLAlchemy(app)
 bootstrap = Bootstrap(app)
 moment = Moment(app)
 manager = Manager(app)
 migrate = Migrate(app, db)
 manager.add_command('db', MigrateCommand)
+mail = Mail(app)
 
 class NameForm(Form):
     name = StringField('What is your name?', validators=[DataRequired()])
@@ -72,9 +84,12 @@ def index():
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.name.data).first()
         if user is None:
-            user = User(username = form.name.data)
+            user = User(username=form.name.data)
             db.session.add(user)
             session['known'] = False
+            if app.config['FLASKY_ADMIN']:
+                send_email(app.config['FLASKY_ADMIN'], 'New User',
+                           'new_user', user=user)
         else:
             session['known'] = True
         session['name'] = form.name.data
@@ -84,17 +99,18 @@ def index():
                            form = form, name = session.get('name'),
                            known = session.get('known', False))
 
-    #     old_name = session.get('name')
-    #     if old_name is not None and old_name != form.name.data:
-    #         flash('Looks like you have changed your name!')
-    #     # post方法重定向get方法
-    #     session['name'] = form.name.data
-    #     return redirect(url_for('index'))
-    # return render_template("index.html",form=form, name=session.get('name'),
-    #                        current_time=datetime.utcnow())
-                            # name信息被保存在session中，session跟普通字典一样，
-                            # 对于不存在的键，get()会返回默认值None。
+def send_async_email(app, msg):
+    with app.app_context():
+        mail.send(msg)
 
+def send_email(to, subject, template, **kwargs):
+    msg = Message(app.config['FLASKY_MAIL_SUBJECT_FREFIX'] + subject,
+                  sender=app.config['FLASKY_MAIL_SENDER'], recipients=[to])
+    msg.body = render_template(template + '.txt', **kwargs)
+    msg.html = render_template(template + '.html', **kwargs)
+    thr = Thread(target=send_async_email, args=[app, msg])
+    thr.start()
+    return thr
 
 @app.route('/user/<name>')
 def user(name):
