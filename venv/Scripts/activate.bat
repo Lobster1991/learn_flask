@@ -1,5 +1,5 @@
 @echo off
-set "VIRTUAL_ENV=C:\Users\shich\learn_flask\venv"
+set "VIRTUAL_ENV=C:\Users\YM\learn_flask\venv"
 
 if defined _OLD_VIRTUAL_PROMPT (
     set "PROMPT=%_OLD_VIRTUAL_PROMPT%"

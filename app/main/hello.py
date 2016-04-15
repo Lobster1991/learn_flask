@@ -30,11 +30,11 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['MAIL_SERVER'] = 'smtp.163.com'
 app.config['MAIL_PORT'] = 25
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'test@163.com'
-app.config['MAIL_PASSWORD'] = 'test'
+app.config['MAIL_USERNAME'] = 'tests@163.com'
+app.config['MAIL_PASSWORD'] = 'tests'
 app.config['FLASKY_MAIL_SUBJECT_FREFIX'] = '[Flasky]'
-app.config['FLASKY_ADMIN'] = 'test@163.com'
-app.config['FLASKY_MAIL_SENDER'] = 'test@163.com'
+app.config['FLASKY_ADMIN'] = 'tests@163.com'
+app.config['FLASKY_MAIL_SENDER'] = 'tests@163.com'
 
 db = SQLAlchemy(app)
 bootstrap = Bootstrap(app)

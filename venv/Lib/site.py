@@ -695,7 +695,7 @@ def main():
     if ENABLE_USER_SITE:
         execusercustomize()
     # Remove sys.setdefaultencoding() so that users cannot change the
-    # encoding after initialization.  The test for presence is needed when
+    # encoding after initialization.  The tests for presence is needed when
     # this module is run as a script, because this code is executed twice.
     if hasattr(sys, "setdefaultencoding"):
         del sys.setdefaultencoding
